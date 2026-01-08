@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adivina el Personaje</title>
+    <title>Juego Familiar - ¿Quién soy?</title>
     <style>
         * {
             box-sizing: border-box;
@@ -261,12 +261,29 @@
             color: #667eea;
             font-size: 1.3em;
         }
+
+        /* Estilos para Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div class="tarjeta-juego" id="contenedor-principal">
-        <h1>🎭 ¿Quién soy?</h1>
+        <h1>🏠 Juego Familiar</h1>
         
         <div class="info-juego">
             <span>📊 Nivel: <span id="nivel-actual">1</span>/<span id="nivel-total">0</span></span>
@@ -284,7 +301,7 @@
         <div class="pista" id="texto-pista">💡 Cargando...</div>
         
         <div class="input-group">
-            <input type="text" id="input-respuesta" placeholder="Escribe el nombre del personaje..." autocomplete="off">
+            <input type="text" id="input-respuesta" placeholder="Escribe la respuesta..." autocomplete="off">
         </div>
         
         <button id="btn-adivinar" onclick="verificarRespuesta()">🎯 ¡Adivinar!</button>
@@ -293,49 +310,67 @@
     </div>
 
     <script>
-        /* PERSONAJES CON EMOJIS - 100% Funcionales */
+        /* 
+        ═══════════════════════════════════════════════════════════
+        📝 PERSONALIZA AQUÍ TUS PREGUNTAS
+        ═══════════════════════════════════════════════════════════
+        
+        INSTRUCCIONES:
+        1. Cambia el "nombre" por la respuesta correcta
+        2. Cambia la "pista" por tu pregunta
+        3. Cambia el "emoji" por uno que represente la pregunta
+        
+        EJEMPLOS DE EMOJIS ÚTILES:
+        Personas: 👨 👩 👦 👧 👴 👵 👶 
+        Familia: 👨‍👩‍👧‍👦 👪 ❤️ 🏠
+        Actividades: 🎮 📚 🍳 ⚽ 🎨 🎸 🎬
+        Emociones: 😊 😂 🥰 😎 🤓 
+        Objetos: 🎂 🎁 🐕 🐈 🚗 
+        */
+
         const personajes = [
             {
-                nombre: "pikachu",
-                pista: "Ratón eléctrico amarillo, mascota de Pokémon.",
-                emoji: "⚡🐭"
+                nombre: "samuel",
+                pista: "Le encanta cantar en las fiestas, eventos, parrilladas aunque nadie se lo pida. Siempre canta la misma canción 'Dos Gardenias' en D menor. Era muy figuretti y un cantante frustrado.",
+                emoji: "🎤"
             },
             {
-                nombre: "mario",
-                pista: "Fontanero italiano con bigote y gorra roja que salta tuberías.",
-                emoji: "🍄👨"
+                nombre: "cecilia",
+                pista: "Le encantan las películas de terror. Una vez vio la película del Payaso Malvado en un teatro completamente vacío. Era la única espectadora. Le dio risa.",
+                emoji: "🎬"
             },
             {
-                nombre: "batman",
-                pista: "Millonario que se viste de murciélago para combatir el crimen.",
-                emoji: "🦇🌃"
+                nombre: "evy",
+                pista: "Es fanática de los dramas coreanos. En otra vida fue una Kpop Demon Hunter.",
+                emoji: "💜"
             },
             {
-                nombre: "spider-man",
-                pista: "Superhéroe adolescente que lanza telarañas y trepa paredes.",
-                emoji: "🕷️🕸️"
+                nombre: "miyi",
+                pista: "Cuando era una niña chiquita sabía reconocer el valor de las casas y cuando salía de paseo señalaba: 'Esa casa es barata, esa casa es cara, esa casa es más o menos'.",
+                emoji: "🏠"
             },
             {
-                nombre: "sonic",
-                pista: "Erizo azul súper veloz que colecciona anillos dorados.",
-                emoji: "💨🦔"
+                nombre: "chani",
+                pista: "Hizo su debut teatral en el papel de Bruja. En medio de la escena golpeó la escoba en el suelo, se rompió y tuvo que improvisar el diálogo. El público se rió muchísimo.",
+                emoji: "🧙‍♀️"
             },
             {
-                nombre: "elsa",
-                pista: "Reina de hielo con poderes para crear nieve y congelar todo.",
-                emoji: "❄️👑"
+                nombre: "coco",
+                pista: "Cuando era chiquita le tenía muchísimo miedo al mar. Hay fotografías que lo prueban.",
+                emoji: "🌊"
             },
             {
-                nombre: "harry potter",
-                pista: "Joven mago con cicatriz de rayo en la frente.",
-                emoji: "⚡🧙"
-            },
-            {
-                nombre: "mickey mouse",
-                pista: "Ratón con orejas grandes y redondas, símbolo de Disney.",
-                emoji: "🐭👂"
+                nombre: "elvira",
+                pista: "Ganó un concurso de baile entre cientos de personas y el premio era bailar con un cantante de moda.",
+                emoji: "💃"
             }
         ];
+
+        /* 
+        ═══════════════════════════════════════════════════════════
+        ⚠️ NO NECESITAS EDITAR NADA MÁS ABAJO
+        ═══════════════════════════════════════════════════════════
+        */
 
         let nivelActual = 0;
         let intentosTotales = 0;
@@ -345,7 +380,6 @@
             document.getElementById("nivel-total").textContent = personajes.length;
             cargarNivel();
             
-            // Enter para enviar
             document.getElementById("input-respuesta").addEventListener("keypress", function(e) {
                 if (e.key === "Enter" && !document.getElementById("btn-adivinar").disabled) {
                     verificarRespuesta();
@@ -404,6 +438,9 @@
                 inputElement.className = "correcto";
                 boton.disabled = true;
                 
+                // Lanzar confetti
+                lanzarConfetti();
+                
                 setTimeout(() => {
                     nivelActual++;
                     cargarNivel();
@@ -427,10 +464,10 @@
             let emoji = "";
             
             if (promedio <= 1.2) {
-                mensaje = "¡ERES UN GENIO ABSOLUTO!";
-                emoji = "🧠";
+                mensaje = "¡CONOCES MUY BIEN A TU FAMILIA!";
+                emoji = "🏆";
             } else if (promedio <= 2) {
-                mensaje = "¡EXCELENTE TRABAJO!";
+                mensaje = "¡EXCELENTE!";
                 emoji = "🌟";
             } else if (promedio <= 3) {
                 mensaje = "¡MUY BIEN!";
@@ -448,9 +485,9 @@
                     <h1>${mensaje}</h1>
                     
                     <div class="estadisticas">
-                        <p>🎯 Personajes: <span class="stat-numero">${personajes.length}</span></p>
+                        <p>🏠 Preguntas completadas: <span class="stat-numero">${personajes.length}</span></p>
                         <p>🔢 Intentos totales: <span class="stat-numero">${intentosTotales}</span></p>
-                        <p>📊 Promedio: <span class="stat-numero">${promedio}</span> intentos/personaje</p>
+                        <p>📊 Promedio: <span class="stat-numero">${promedio}</span> intentos/pregunta</p>
                         <p>⭐ Calificación: <span class="stat-numero">${obtenerCalificacion(promedio)}</span></p>
                     </div>
                     
@@ -460,14 +497,38 @@
         }
 
         function obtenerCalificacion(promedio) {
-            if (promedio <= 1.2) return "★★★★★ (Maestro)";
-            if (promedio <= 2) return "★★★★☆ (Experto)";
-            if (promedio <= 3) return "★★★☆☆ (Avanzado)";
-            return "★★☆☆☆ (Principiante)";
+            if (promedio <= 1.2) return "★★★★★ (¡Experto familiar!)";
+            if (promedio <= 2) return "★★★★☆ (¡Muy bien!)";
+            if (promedio <= 3) return "★★★☆☆ (¡Bien!)";
+            return "★★☆☆☆ (¡Sigue intentando!)";
+        }
+
+        // Función para crear confetti
+        function lanzarConfetti() {
+            const colores = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#ffd89b', '#19547b', '#e74c3c', '#27ae60', '#f39c12'];
+            const formas = ['●', '■', '▲', '★', '♦'];
+            const cantidad = 100;
+            
+            for (let i = 0; i < cantidad; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.textContent = formas[Math.floor(Math.random() * formas.length)];
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.color = colores[Math.floor(Math.random() * colores.length)];
+                    confetti.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                    confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear forwards`;
+                    
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }, i * 10);
+            }
         }
 
         inicializarJuego();
     </script>
 </body>
 </html>
-
